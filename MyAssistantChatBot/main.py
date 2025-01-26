@@ -69,9 +69,19 @@ def get_all_passwords():
         return json_response
     else:
         print(f"Error: {response.status_code}, {response.text}")
+        
+def get_all_notes():
+    """As you are a Personal assistant, use this to store all available notes data."""
+    response = requests.get(passwords_url, headers=headers)
+    if response.status_code == 200:
+        # Process the JSON response if successful
+        json_response = response.json()
+        return json_response
+    else:
+        print(f"Error: {response.status_code}, {response.text}")
 
 
-tools = [get_all_tasks, get_all_passwords]
+tools = [get_all_tasks, get_all_passwords, get_all_notes]
 tool_node = ToolNode(tools)
 llm = ChatOpenAI().bind_tools(tools)
 
