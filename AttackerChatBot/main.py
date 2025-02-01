@@ -27,6 +27,20 @@ class State(TypedDict):
 
 memory = MemorySaver()
 
+structured_attacks = []
+current_attack = None
+
+for p in sample_prompts:
+    if isinstance(p, str) and p.startswith("Name:"):
+        if current_attack:  # Save the previous attack
+            structured_attacks.append(current_attack)
+        attack_name = p.replace("Name:", "").strip()
+        current_attack = {"name": attack_name, "details": ""}
+    elif current_attack and isinstance(p, str):
+        current_attack["details"] += p + "\n"
+
+if current_attack:  # Append the last attack found
+    structured_attacks.append(current_attack)
 
 def summarize_conversation(state: MessagesState):
     summary = state.get("summary", "")
@@ -49,6 +63,28 @@ def attack_prompt_selector():
     this function and use the prompts patterns from this. Go through all the given prompts from the list."""
     return sample_prompts
 
+
+def execute_attack(attack_name, prompt):
+    """Executes attack and returns response."""
+    print(f"\nAttacker: Using strategy -> {attack_name}")
+
+    for event in attacker_workflow(checkpointer=memory).stream({"messages": [("user", prompt)]}, config):
+        for value in event.values():
+            response = value["messages"][-1].content
+            print("Assistant:", response)
+            return response
+
+def run_attacks():
+    """Executes all attacks and returns results to be saved in main.py."""
+    attack_results = []
+
+    for attack in structured_attacks:
+        attack_name = attack["name"]
+        for prompt in attack["details"]:  # Send each attack detail separately
+            response = execute_attack(attack_name, prompt)
+            attack_results.append((attack_name, prompt, response))
+
+    return attack_results
 
 tools = [attack_prompt_selector]
 tool_node = ToolNode(tools)
@@ -98,20 +134,26 @@ def stream_graph_updates(u_input: str):
         for value in event.values():
             print("Assistant:", value["messages"][-1].content)
 
-
-
+# if __name__ == "__main__":
+#     while True:
+#         try:
+#             user_input = input("User: ")
+#             if user_input.lower() in ["quit", "exit", "q"]:
+#                 print("Goodbye!")
+#             stream_graph_updates(user_input)
+#         except:
+#             # fallback if input() is not available
+#             user_input = "What do you know about LangGraph?"
+#             print("User: " + user_input)
+#             stream_graph_updates(user_input)
+#             break
 
 
 if __name__ == "__main__":
-    while True:
-        try:
-            user_input = input("User: ")
-            if user_input.lower() in ["quit", "exit", "q"]:
-                print("Goodbye!")
-            stream_graph_updates(user_input)
-        except:
-            # fallback if input() is not available
-            user_input = "What do you know about LangGraph?"
-            print("User: " + user_input)
-            stream_graph_updates(user_input)
-            break
+    attack_results = []
+    
+    for attack in structured_attacks:
+        attack_name = attack["name"]
+        for prompt in attack["details"]:  # Send each attack detail separately
+            response = execute_attack(attack_name, prompt)
+            attack_results.append((attack_name, prompt, response))
