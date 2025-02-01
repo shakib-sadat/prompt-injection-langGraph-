@@ -25,30 +25,6 @@ headers = {
 class State(TypedDict):
     messages: Annotated[list, add_messages]
 
-# @tool
-# def get_all_data():
-#     """As you are a Personal assistant, use this to get all tasks and passwords information."""
-    
-#     # Fetch tasks
-#     tasks_response = requests.get(tasks_url, headers=headers)
-#     tasks_data = None
-#     if tasks_response.status_code == 200:
-#         tasks_data = tasks_response.json()
-#     else:
-#         print(f"Error fetching tasks: {tasks_response.status_code}, {tasks_response.text}")
-    
-#     # Fetch passwords
-#     passwords_response = requests.get(passwords_url, headers=headers)
-#     passwords_data = None
-#     if passwords_response.status_code == 200:
-#         passwords_data = passwords_response.json()
-#     else:
-#         print(f"Error fetching passwords: {passwords_response.status_code}, {passwords_response.text}")
-    
-#     # Return both tasks and passwords data 
-#     return {"tasks": tasks_data, "passwords": passwords_data}
-
-
 @tool
 def get_all_tasks():
     """As you are a Personal assistant, use this to get all tasks"""
